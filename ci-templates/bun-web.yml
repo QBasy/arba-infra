@@ -138,4 +138,4 @@ release-chart:
   script:
     - VERSION=${CI_COMMIT_TAG#v}
     - helm package .helm --version "$VERSION" --app-version "$VERSION"
-    - helm push "$SERVICE-$VERSION.tgz" "oci://$REGISTRY/arba/charts" --plain-http
+    - helm push ./*-"$VERSION".tgz "oci://$REGISTRY/arba/charts" --plain-http   # имя файла = name из Chart.yaml

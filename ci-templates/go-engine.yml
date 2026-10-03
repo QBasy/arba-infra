@@ -29,7 +29,7 @@ variables:
   GOCACHE: $CI_PROJECT_DIR/.cache/go-build
   GOMODCACHE: $CI_PROJECT_DIR/.cache/go-mod
   # версии инструментов: при первом запуске проверьте, что теги существуют, и поправьте здесь
-  GOLANGCI_IMAGE: golangci/golangci-lint:v2.5.0
+  GOLANGCI_IMAGE: golangci/golangci-lint:v2.14.0
   GITLEAKS_IMAGE: zricethezav/gitleaks:v8.28.0
   HELM_IMAGE: alpine/helm:3.16.4
   KANIKO_IMAGE: gcr.io/kaniko-project/executor:v1.23.2-debug
@@ -217,4 +217,4 @@ release-chart:
   script:
     - VERSION=${CI_COMMIT_TAG#v}
     - helm package .helm --version "$VERSION" --app-version "$VERSION"
-    - helm push "$SERVICE-$VERSION.tgz" "oci://$REGISTRY/arba/charts" --plain-http
+    - helm push ./*-"$VERSION".tgz "oci://$REGISTRY/arba/charts" --plain-http   # имя файла = name из Chart.yaml
