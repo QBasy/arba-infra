@@ -198,13 +198,14 @@ deploy-dev:
   resource_group: gitops-dev
   script:
     - apk add --no-cache git
-    - test -n "$GITOPS_PUSH_TOKEN" || { echo "нет переменной GITOPS_PUSH_TOKEN (группа arba)"; exit 1; }
-    - git clone --depth 1 "http://gitops-bot:${GITOPS_PUSH_TOKEN}@${GITLAB_HOST}/${GITOPS_REPO}.git" /tmp/gitops
-    - test -f "/tmp/gitops/dev/${SERVICE}.yml" || { echo "нет dev/${SERVICE}.yml в ${GITOPS_REPO}: создайте манифест сервиса"; exit 1; }
-    - sh /tmp/gitops/scripts/bump.sh "/tmp/gitops/dev/${SERVICE}.yml" "$CI_COMMIT_SHA" "$IMAGE_TAG" "$IMAGE_DIGEST"
-    - cd /tmp/gitops
-    - git -c user.name=gitops-bot -c user.email=gitops-bot@arba.kz commit -am "deploy(dev): ${SERVICE} ${IMAGE_TAG}"
-    - git push origin HEAD:main
+    - |
+      if [ -z "$GITOPS_PUSH_TOKEN" ]; then echo "нет переменной GITOPS_PUSH_TOKEN (группа arba)"; exit 1; fi
+      git clone --depth 1 "http://gitops-bot:${GITOPS_PUSH_TOKEN}@${GITLAB_HOST}/${GITOPS_REPO}.git" /tmp/gitops
+      if [ ! -f "/tmp/gitops/dev/${SERVICE}.yml" ]; then echo "нет dev/${SERVICE}.yml в ${GITOPS_REPO}, создайте манифест сервиса"; exit 1; fi
+      sh /tmp/gitops/scripts/bump.sh "/tmp/gitops/dev/${SERVICE}.yml" "$CI_COMMIT_SHA" "$IMAGE_TAG" "$IMAGE_DIGEST"
+      cd /tmp/gitops
+      git -c user.name=gitops-bot -c user.email=gitops-bot@arba.kz commit -am "deploy(dev): ${SERVICE} ${IMAGE_TAG}"
+      git push origin HEAD:main
 
 # ───────────── release (helm-чарт; только для семантических тегов 1.2.3 / v1.2.3) ─────────────
 release-chart:
