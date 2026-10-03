@@ -28,21 +28,21 @@ Conventional Commits, scope — имя сервиса или модуля:
 ```text
 feat(origination): add offer expiry
 fix(servicing): round penalty down to tiyn
-chore(infra): bump dev origination to sha-1a2b3c4
+chore(infra): bump namespace quotas
 ```
 
 Тип коммита определяет версию: `fix` — patch, `feat` — minor, `feat!` или `BREAKING CHANGE:` — major. MR — не больше 400 строк диффа. Заголовок MR = итоговое сообщение squash-коммита. Ломающее изменение API — только в `/v2` и только после MR с изменением `contracts`.
 
 ## Релизы и теги
 
-Каждый merge в `main` собирает образ `sha-<коротхеш>` и сам выкатывается в `dev` — это не релиз. Релиз — аннотированный тег `vMAJOR.MINOR.PATCH` на коммите `main`:
+Merge в `main` образ не собирает и ничего не выкатывает, только проверяет код. Образ и выкатка в `dev` запускаются **git-тегом** на коммите `main`; тег = версия образа. Обычный релиз — `MAJOR.MINOR.PATCH` (допустим и `vMAJOR.MINOR.PATCH`), для особых случаев — осмысленное имя вроде `fix-infra-merged`:
 
 ```bash
 git tag -a v1.4.2 -m "origination 1.4.2"
 git push origin v1.4.2
 ```
 
-Тег запускает пайплайн релиза: тот же образ получает тег `1.4.2`, публикуется чарт `1.4.2` (см. [ci.md](ci.md), [versions.md](versions.md)). Теги не переносятся и не удаляются.
+Тег запускает пайплайн: собирается образ `1.4.2`, деплой в `dev`, для семантических тегов публикуется чарт `1.4.2` (см. [ci.md](ci.md), [versions.md](versions.md)). Теги не переносятся и не удаляются.
 
 ## Что не коммитим
 

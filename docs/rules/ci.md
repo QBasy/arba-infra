@@ -22,12 +22,12 @@ variables:
 | --- | --- | --- | --- |
 | `verify` | `go mod tidy` без диффа, согласованность версий Go, `golangci-lint`, `go-arch-lint`, `helm lint` + `helm template` для `.helm/`, `gitleaks` | MR и `main` | да |
 | `test` | юнит-тесты с `-race`, интеграционные тесты, порог покрытия | MR и `main` | да |
-| `build` | сборка образа Kaniko, push `sha-<коротхеш>`, запись digest | `main` | — |
-| `scan` | `govulncheck`, `trivy` по образу, SBOM | `main` | см. ниже |
-| `deploy` | бот меняет `envs/dev/<сервис>/app.yaml` в `arba/infra` | `main` | — |
-| `release` | перетегирование образа на `X.Y.Z`, публикация чарта в OCI | тег `vX.Y.Z` | — |
+| `build` | сборка образа Kaniko, push тега = git-тег, запись digest | git-тег | — |
+| `scan` | `govulncheck`, `trivy` по образу, SBOM | git-тег | см. ниже |
+| `deploy` | бот меняет `dev/<SERVICE>.yml` в `argocd/argocd-dev` (ревизия, тег, digest) | git-тег | — |
+| `release` | публикация чарта в OCI | семантический тег `1.2.3` / `v1.2.3` | — |
 
-Пайплайн на теге не пересобирает образ: берёт образ коммита, который уже прошёл `main`.
+Пайплайн на теге не повторяет `verify` и `test`: тег ставится на коммит `main`, который их уже прошёл. Образ собирается только на теге.
 
 ## Интеграционные тесты
 
@@ -43,10 +43,10 @@ variables:
 | --- | --- | --- |
 | Скачать приватные модули при сборке | `CI_JOB_TOKEN`; группа `arba` добавлена в Job token permissions проектов `contracts` и `kit` | выдаёт GitLab |
 | Запушить образ | registry локальный и без авторизации (только `dev`) | — |
-| Обновить `arba/infra` | `INFRA_PUSH_TOKEN` — токен проекта `arba/infra` с правом `write_repository` | переменная CI на уровне группы `arba`, masked, protected |
+| Обновить `argocd/argocd-dev` | `GITOPS_PUSH_TOKEN` — токен проекта `argocd/argocd-dev` с правом `write_repository` | переменная CI на уровне группы `arba`, masked, не protected (теги не защищены) |
 | Argo CD читает репозитории | групповой deploy token `argocd` (`read_repository`) | Secret в namespace `argocd` |
 
-`INFRA_PUSH_TOKEN` и deploy token создаёт скрипт `14-infra.ps1`; значения не коммитятся и не печатаются в логи.
+`GITOPS_PUSH_TOKEN` и deploy token создаёт скрипт `15-argocd-dev.ps1`; значения не коммитятся и не печатаются в логи.
 
 ## Runner
 
