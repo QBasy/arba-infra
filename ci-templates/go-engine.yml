@@ -26,6 +26,7 @@ variables:
   GOINSECURE: "*.arba.kz"
   GOPRIVATE: "*.arba.kz"
   GOFLAGS: "-mod=readonly"
+  CGO_ENABLED: "1"            # -race требует cgo
   GOCACHE: $CI_PROJECT_DIR/.cache/go-build
   GOMODCACHE: $CI_PROJECT_DIR/.cache/go-mod
   # версии инструментов: при первом запуске проверьте, что теги существуют, и поправьте здесь
@@ -46,7 +47,7 @@ workflow:
 .go:
   image: golang:${GO_VERSION}-alpine
   before_script:
-    - apk add --no-cache git make bash
+    - apk add --no-cache git make bash gcc musl-dev   # gcc нужен для go test -race (cgo)
     - git config --global url."http://gitlab-ci-token:${CI_JOB_TOKEN}@${GITLAB_HOST}/".insteadOf "http://${GITLAB_HOST}/"
   cache:
     key: go-$CI_PROJECT_NAME
