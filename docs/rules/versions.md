@@ -12,11 +12,11 @@ namespace: dev
 repoURL: http://gitlab.arba.kz/arba/engines/origination.git
 chartPath: .helm
 revision: "1a2b3c4d5e6f..."      # коммит с .helm — бот меняет
-imageTag: "sha-1a2b3c4"          # тег — бот меняет
+imageTag: "1.4.2"               # тег = git-тег — бот меняет
 imageDigest: "sha256:9f86d0..."  # digest — бот меняет
 ```
 
-В `values.yaml` рядом лежат ручные параметры окружения (реплики, хосты, ресурсы). Бот трогает только `app.yaml`, человек — только `values.yaml`. Каждое изменение — коммит `chore(dev): origination → sha-1a2b3c4`, поэтому `git log envs/dev/origination` — это история выкатов, а `git revert` — откат.
+В `values.yaml` рядом лежат ручные параметры окружения (реплики, хосты, ресурсы). Бот трогает только `app.yaml`, человек — только `values.yaml`. Каждое изменение — коммит `chore(dev): origination → 1.4.2`, поэтому `git log envs/dev/origination` — это история выкатов, а `git revert` — откат.
 
 ## Таблица версий
 
@@ -24,7 +24,7 @@ imageDigest: "sha256:9f86d0..."  # digest — бот меняет
 
 | Сервис | dev | stage | prod |
 | --- | --- | --- | --- |
-| `origination` | `sha-1a2b3c4` | `1.4.2` | `1.4.2` |
+| `origination` | `1.4.2` | `1.4.2` | `1.4.2` |
 
 ## Версии и SemVer
 
@@ -50,7 +50,7 @@ components:
 
 ## Продвижение между окружениями
 
-`dev` обновляется автоматически с каждым merge в `main`. `stage` и `prod` — только через MR в `arba/infra`, в котором меняются те же три поля из `dev` (тег, digest, ревизия) на релизные значения. Образ не пересобирается: в `stage` и `prod` едет тот же digest, который проверили в `dev`.
+`dev` обновляется автоматически с каждым git-тегом. `stage` и `prod` — только через MR в `arba/infra`, в котором меняются те же три поля из `dev` (тег, digest, ревизия) на релизные значения. Образ не пересобирается: в `stage` и `prod` едет тот же digest, который проверили в `dev`.
 
 ## Откат
 

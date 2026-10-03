@@ -3,15 +3,15 @@
 ## Схема
 
 ```text
-merge в main (arba/engines/origination)
-  → CI: verify, test, build (образ sha-1a2b3c4, digest), scan
-  → deploy: бот коммитит в arba/infra  envs/dev/origination/app.yaml
-  → Argo CD (ApplicationSet) видит изменение
-  → рендерит .helm/ репозитория сервиса на нужной ревизии + values.yaml из infra
+git-тег 1.4.2 (или v1.4.2, fix-infra-merged) на коммите main
+  → CI: build (образ <репо>:1.4.2, digest), scan
+  → deploy: бот коммитит в argocd/argocd-dev  dev/origination.yml (ревизия, тег, digest)
+  → Argo CD (root-dev, app-of-apps) видит изменение
+  → рендерит .helm/ репозитория сервиса на этой ревизии
   → применяет в namespace dev
 ```
 
-Все изменения кластера — коммиты в `arba/infra`. Состояние в git = состояние в кластере; Argo CD следит за расхождениями.
+Все изменения кластера — коммиты в `argocd/argocd-dev` (окружение dev) и в `arba/infra` (общая платформа: namespace, проекты, правила). Состояние в git = состояние в кластере; Argo CD следит за расхождениями.
 
 ## Что лежит в `arba/infra`
 
