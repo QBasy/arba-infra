@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+  labels:
+    arba.kz/env: dev
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: dev-quota
+  namespace: dev
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: 12Gi
+    limits.memory: 24Gi
+    pods: "100"
+    persistentvolumeclaims: "30"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: dev-defaults
+  namespace: dev
+spec:
+  limits:
+    - type: Container
+      defaultRequest: { cpu: 50m, memory: 64Mi }
+      default: { memory: 256Mi }
+---
+# по умолчанию входящий трафик запрещён; каждый сервис разрешает своё сам (networkPolicy в .helm)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: dev
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+---
+# зависимости (NATS, MinIO, Keycloak...) доступны всем подам этого namespace; доступ к сервисам разрешает их собственный чарт
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-same-namespace-dependencies
+  namespace: dev
+spec:
+  podSelector:
+    matchLabels:
+      arba.kz/tier: dep
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {}

@@ -1,0 +1,8 @@
+# Поля revision, imageTag, imageDigest обновляет бот CI (scripts/bump-env.sh). Остальное — люди.
+name: origination
+namespace: dev
+repoURL: http://gitlab.arba.kz/arba/engines/origination.git
+chartPath: .helm
+revision: "main"
+imageTag: "sha-0000000"
+imageDigest: ""

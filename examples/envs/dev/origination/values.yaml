@@ -1,0 +1,16 @@
+# Параметры окружения dev для origination (люди)
+replicaCount: 1
+image:
+  repository: registry.arba.kz/arba/engines/origination
+global:
+  tier: engine
+worker:
+  enabled: false
+migrate:
+  enabled: false
+env:
+  LOG_LEVEL: debug
+# secretEnv:
+#   - { name: DATABASE_URL, secret: origination-db-app, key: uri }
+# временно, для отладки (в stage/prod не включать):
+# ingress: { enabled: true, host: origination.dev.arba.kz }

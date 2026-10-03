@@ -1,0 +1,83 @@
+# Значения по умолчанию. Всё, что отличается по окружениям (тег образа, реплики,
+# хосты), лежит НЕ здесь, а в arba/infra: envs/<env>/<service>/values.yaml.
+
+nameOverride: ""
+
+global:
+  env: dev                       # dev | stage | prod (переопределяется в infra)
+  tier: engine                   # engine | platform | dep
+
+image:
+  repository: registry.arba.kz/arba/engines/SERVICE   # <- замените
+  tag: ""                        # версия: 1.4.2 или sha-abc1234 (задаёт infra)
+  digest: ""                     # sha256:... (задаёт infra; деплой идёт по digest)
+  pullPolicy: IfNotPresent
+
+replicaCount: 1                  # prod: минимум 2 (NFR-01)
+
+# Основной процесс (cmd/server). Образ один на все cmd/*, процесс выбирает command.
+command: ["/app/server"]
+args: []
+
+service:
+  port: 8080                     # HTTP/1.1 + h2c: gRPC, gRPC-Web, HTTP/JSON (connect-go)
+  annotations: {}
+
+# Обычные переменные окружения (не секреты)
+env: {}
+# Отдельные переменные из ключей Secret'ов, например строка подключения к БД от CloudNativePG:
+# secretEnv: [{ name: DATABASE_URL, secret: origination-db-app, key: uri }]
+secretEnv: []
+# Подключение секретов целиком: имена Secret'ов в namespace
+envFromSecrets: []
+# Файл-конфиг приложения (кладётся в ConfigMap и монтируется в /etc/app/config.yaml)
+config: {}
+
+resources:
+  requests: { cpu: 50m, memory: 64Mi }
+  limits:   { memory: 256Mi }    # CPU limit не ставим (throttling), память — всегда
+
+probes:
+  liveness:  { path: /healthz, initialDelaySeconds: 2, periodSeconds: 10 }
+  readiness: { path: /readyz,  initialDelaySeconds: 2, periodSeconds: 5 }
+
+# Фоновый процесс (cmd/worker): River, outbox relay
+worker:
+  enabled: false
+  command: ["/app/worker"]
+  replicaCount: 1
+  resources:
+    requests: { cpu: 20m, memory: 64Mi }
+    limits:   { memory: 256Mi }
+
+# Миграции БД (cmd/migrate) — Job перед выкаткой (Argo CD PreSync)
+migrate:
+  enabled: false
+  command: ["/app/migrate", "up"]
+
+# Ingress — ТОЛЬКО если сервис должен быть доступен снаружи кластера.
+# Движки (engines) наружу не публикуются; публичные входы — platform/gateway и web.
+ingress:
+  enabled: false
+  className: nginx
+  host: ""                       # например origination.dev.arba.kz
+  annotations: {}
+  tls: []                        # включим вместе с локальным CA
+
+serviceAccount:
+  create: true
+  annotations: {}
+
+podDisruptionBudget:
+  enabled: true                  # применяется при replicaCount > 1
+
+networkPolicy:
+  enabled: true
+  # кто может ходить в сервис (помимо ingress-nginx, если ingress.enabled)
+  ingressFrom:
+    - podSelector: {}            # любые поды этого namespace
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

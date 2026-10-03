@@ -1,0 +1,7 @@
+.git
+.idea
+.cache
+.helm
+bin
+*.out
+*.md

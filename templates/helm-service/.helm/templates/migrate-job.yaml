@@ -1,0 +1,40 @@
+{{- if .Values.migrate.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "svc.fullname" . }}-migrate-{{ default .Chart.AppVersion .Values.image.tag | replace "." "-" | replace "+" "-" | lower | trunc 30 | trimSuffix "-" }}
+  labels: {{- include "svc.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels: {{- include "svc.selectorLabels" . | nindent 8 }}
+        arba.kz/process: migrate
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "svc.fullname" . }}
+      automountServiceAccountToken: false
+      {{- include "svc.podSecurity" . | nindent 6 }}
+      containers:
+        - name: migrate
+          image: {{ include "svc.image" . | quote }}
+          command: {{ toJson .Values.migrate.command }}
+          env: {{- include "svc.env" . | nindent 12 }}
+          {{- with (include "svc.envFrom" .) }}
+          envFrom: {{- . | nindent 12 }}
+          {{- end }}
+          resources:
+            requests: { cpu: 20m, memory: 64Mi }
+            limits:   { memory: 256Mi }
+          {{- include "svc.containerSecurity" . | nindent 10 }}
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+      volumes:
+        - { name: tmp, emptyDir: {} }
+{{- end }}
