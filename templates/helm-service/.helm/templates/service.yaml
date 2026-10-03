@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "svc.fullname" . }}
+  labels: {{- include "svc.labels" . | nindent 4 }}
+  annotations:
+    kuber-gateway/port: {{ .Values.service.port | quote }}
+    {{- if .Values.ingress.enabled }}
+    kuber-gateway/skip: "true"   # хост уже публикует Ingress этого чарта; локальный gateway не дублирует
+    {{- end }}
+    {{- with .Values.service.annotations }}{{ toYaml . | nindent 4 }}{{- end }}
+spec:
+  type: ClusterIP
+  selector: {{- include "svc.selectorLabels" . | nindent 4 }}
+    arba.kz/process: server
+  ports:
+    - { name: http, port: {{ .Values.service.port }}, targetPort: http }

@@ -1,0 +1,417 @@
+# Local image registry + pull-through caches, running inside the cluster (namespace: registry)
+# __DOMAIN__ is replaced by 12-registry-k8s.ps1
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: registry
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: registry
+  namespace: registry
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+  namespace: registry
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: registry
+  template:
+    metadata:
+      labels:
+        app: registry
+    spec:
+      containers:
+      - name: registry
+        image: registry:2
+        ports:
+        - containerPort: 5000
+        env:
+        - name: REGISTRY_STORAGE_DELETE_ENABLED
+          value: "true"
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/registry
+        readinessProbe:
+          httpGet:
+            path: /v2/
+            port: 5000
+          periodSeconds: 5
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: registry
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry
+  namespace: registry
+spec:
+  type: NodePort
+  selector:
+    app: registry
+  ports:
+  - port: 5000
+    targetPort: 5000
+    nodePort: 30500
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mirror-docker
+  namespace: registry
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mirror-docker
+  namespace: registry
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mirror-docker
+  template:
+    metadata:
+      labels:
+        app: mirror-docker
+    spec:
+      containers:
+      - name: registry
+        image: registry:2
+        ports:
+        - containerPort: 5000
+        env:
+        - name: REGISTRY_PROXY_REMOTEURL
+          value: "https://registry-1.docker.io"
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/registry
+        readinessProbe:
+          httpGet:
+            path: /v2/
+            port: 5000
+          periodSeconds: 5
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mirror-docker
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mirror-docker
+  namespace: registry
+spec:
+  type: NodePort
+  selector:
+    app: mirror-docker
+  ports:
+  - port: 5000
+    targetPort: 5000
+    nodePort: 30501
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mirror-gitlab
+  namespace: registry
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mirror-gitlab
+  namespace: registry
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mirror-gitlab
+  template:
+    metadata:
+      labels:
+        app: mirror-gitlab
+    spec:
+      containers:
+      - name: registry
+        image: registry:2
+        ports:
+        - containerPort: 5000
+        env:
+        - name: REGISTRY_PROXY_REMOTEURL
+          value: "https://registry.gitlab.com"
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/registry
+        readinessProbe:
+          httpGet:
+            path: /v2/
+            port: 5000
+          periodSeconds: 5
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mirror-gitlab
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mirror-gitlab
+  namespace: registry
+spec:
+  type: NodePort
+  selector:
+    app: mirror-gitlab
+  ports:
+  - port: 5000
+    targetPort: 5000
+    nodePort: 30502
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mirror-quay
+  namespace: registry
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mirror-quay
+  namespace: registry
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mirror-quay
+  template:
+    metadata:
+      labels:
+        app: mirror-quay
+    spec:
+      containers:
+      - name: registry
+        image: registry:2
+        ports:
+        - containerPort: 5000
+        env:
+        - name: REGISTRY_PROXY_REMOTEURL
+          value: "https://quay.io"
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/registry
+        readinessProbe:
+          httpGet:
+            path: /v2/
+            port: 5000
+          periodSeconds: 5
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mirror-quay
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mirror-quay
+  namespace: registry
+spec:
+  type: NodePort
+  selector:
+    app: mirror-quay
+  ports:
+  - port: 5000
+    targetPort: 5000
+    nodePort: 30503
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mirror-ghcr
+  namespace: registry
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mirror-ghcr
+  namespace: registry
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mirror-ghcr
+  template:
+    metadata:
+      labels:
+        app: mirror-ghcr
+    spec:
+      containers:
+      - name: registry
+        image: registry:2
+        ports:
+        - containerPort: 5000
+        env:
+        - name: REGISTRY_PROXY_REMOTEURL
+          value: "https://ghcr.io"
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/registry
+        readinessProbe:
+          httpGet:
+            path: /v2/
+            port: 5000
+          periodSeconds: 5
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mirror-ghcr
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mirror-ghcr
+  namespace: registry
+spec:
+  type: NodePort
+  selector:
+    app: mirror-ghcr
+  ports:
+  - port: 5000
+    targetPort: 5000
+    nodePort: 30504
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mirror-gcr
+  namespace: registry
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mirror-gcr
+  namespace: registry
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mirror-gcr
+  template:
+    metadata:
+      labels:
+        app: mirror-gcr
+    spec:
+      containers:
+      - name: registry
+        image: registry:2
+        ports:
+        - containerPort: 5000
+        env:
+        - name: REGISTRY_PROXY_REMOTEURL
+          value: "https://gcr.io"
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/registry
+        readinessProbe:
+          httpGet:
+            path: /v2/
+            port: 5000
+          periodSeconds: 5
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mirror-gcr
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mirror-gcr
+  namespace: registry
+spec:
+  type: NodePort
+  selector:
+    app: mirror-gcr
+  ports:
+  - port: 5000
+    targetPort: 5000
+    nodePort: 30505
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: registry
+  namespace: registry
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: registry.__DOMAIN__
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: registry
+            port:
+              number: 5000
+  - host: localhost
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: registry
+            port:
+              number: 5000

@@ -1,0 +1,25 @@
+# Правила зависимостей из документа «Подготовка к разработке». Проверьте синтаксис при первом запуске.
+version: 3
+workdir: internal
+allow:
+  depOnAnyVendor: false
+components:
+  domain:   { in: domain/** }
+  app:      { in: app/** }
+  adapters: { in: adapters/** }
+  config:   { in: config }
+vendors:
+  kit:       { in: gitlab.arba.kz/arba/kit/** }
+  contracts: { in: gitlab.arba.kz/arba/contracts/** }
+deps:
+  domain:
+    canUse: [kit]          # только kit/money; остальное запрещает ревью и forbidigo
+  app:
+    mayDependOn: [domain]
+    canUse: [kit]
+  adapters:
+    mayDependOn: [app, domain, config]
+    canUse: [kit, contracts]
+    anyVendorDeps: true
+  config:
+    anyVendorDeps: true

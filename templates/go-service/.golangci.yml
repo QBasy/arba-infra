@@ -1,0 +1,26 @@
+# Стартовый строгий конфиг (golangci-lint v2). Расширяется только через MR в arba/infra/templates.
+version: "2"
+linters:
+  default: standard
+  enable:
+    - errorlint
+    - gosec
+    - bodyclose
+    - noctx
+    - contextcheck
+    - forbidigo
+    - gocyclo
+  settings:
+    gocyclo:
+      min-complexity: 10
+    forbidigo:
+      forbid:
+        - pattern: '^time\.Now$'
+          msg: "используйте интерфейс Clock (правило 7)"
+        - pattern: '^panic$'
+          msg: "panic запрещён вне main (правило 9)"
+  exclusions:
+    paths:
+      - cmd/
+run:
+  timeout: 5m

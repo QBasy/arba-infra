@@ -1,0 +1,8 @@
+include:
+  - project: arba/infra
+    ref: main
+    file: ci-templates/go-engine.yml
+
+variables:
+  GO_VERSION: "1.27"          # = go.mod = .tool-versions
+  SERVICE: origination        # <- имя сервиса

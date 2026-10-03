@@ -1,0 +1,9 @@
+# CI самого arba/infra: проверка манифестов и эталонного чарта
+stages: [verify]
+
+yaml-and-helm:
+  stage: verify
+  image: { name: alpine/helm:3.16.4, entrypoint: [""] }
+  script:
+    - helm lint templates/helm-service/.helm --set image.tag=0.0.0
+    - helm template check templates/helm-service/.helm --set image.tag=0.0.0 --set worker.enabled=true --set migrate.enabled=true --set ingress.enabled=true --set ingress.host=check.dev.arba.kz > /dev/null

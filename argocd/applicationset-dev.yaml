@@ -1,0 +1,50 @@
+# По одному Application на каждую папку envs/dev/<сервис>/app.yaml.
+# Источник 1 — .helm/ репозитория сервиса на ревизии из app.yaml; источник 2 — values.yaml окружения из этого репозитория.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: arba-dev
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: http://gitlab.arba.kz/arba/infra.git
+        revision: main
+        files:
+          - path: envs/dev/*/app.yaml
+  template:
+    metadata:
+      name: 'dev-{{ .name }}'
+      labels:
+        arba.kz/env: dev
+    spec:
+      project: arba
+      sources:
+        - repoURL: '{{ .repoURL }}'
+          targetRevision: '{{ .revision }}'
+          path: '{{ .chartPath }}'
+          helm:
+            releaseName: '{{ .name }}'
+            valueFiles:
+              - '$values/envs/dev/{{ .name }}/values.yaml'
+            valuesObject:
+              global:
+                env: dev
+              image:
+                tag: '{{ .imageTag }}'
+                digest: '{{ .imageDigest }}'
+        - repoURL: http://gitlab.arba.kz/arba/infra.git
+          targetRevision: main
+          ref: values
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{ .namespace }}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false
+          - ServerSideApply=true

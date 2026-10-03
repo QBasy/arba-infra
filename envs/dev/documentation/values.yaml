@@ -1,0 +1,6 @@
+# Параметры окружения dev для портала документации (люди)
+global:
+  tier: platform
+ingress:
+  enabled: true
+  host: docs.dev.arba.kz

@@ -1,0 +1,46 @@
+{{- if .Values.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "svc.fullname" . }}-worker
+  labels: {{- include "svc.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  selector:
+    matchLabels: {{- include "svc.selectorLabels" . | nindent 6 }}
+      arba.kz/process: worker
+  template:
+    metadata:
+      labels: {{- include "svc.labels" . | nindent 8 }}
+        arba.kz/process: worker
+      annotations:
+        {{- if .Values.config }}
+        checksum/config: {{ toYaml .Values.config | sha256sum }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "svc.fullname" . }}
+      automountServiceAccountToken: false
+      {{- include "svc.podSecurity" . | nindent 6 }}
+      containers:
+        - name: worker
+          image: {{ include "svc.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: {{ toJson .Values.worker.command }}
+          env: {{- include "svc.env" . | nindent 12 }}
+          {{- with (include "svc.envFrom" .) }}
+          envFrom: {{- . | nindent 12 }}
+          {{- end }}
+          resources: {{- toYaml .Values.worker.resources | nindent 12 }}
+          {{- include "svc.containerSecurity" . | nindent 10 }}
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+            {{- if .Values.config }}
+            - { name: config, mountPath: /etc/app, readOnly: true }
+            {{- end }}
+      volumes:
+        - { name: tmp, emptyDir: {} }
+        {{- if .Values.config }}
+        - name: config
+          configMap: { name: {{ include "svc.fullname" . }} }
+        {{- end }}
+{{- end }}

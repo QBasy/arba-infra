@@ -1,0 +1,6 @@
+apiVersion: v2
+name: arba-service        # <- замените на имя репозитория: origination, scoring, ...
+description: Стандартный Helm-чарт сервиса Arba (лежит в .helm/ каждого репозитория)
+type: application
+version: 0.1.0           # версия чарта; CI подставляет версию релиза
+appVersion: "0.0.0"      # версия приложения; CI подставляет версию релиза
