@@ -45,6 +45,10 @@
 5. `automountServiceAccountToken: false`, если сервису не нужен API Kubernetes.
 6. Конфигурация приложения — `config:` (попадает в ConfigMap и монтируется в `/etc/app/config.yaml`; смена значения перезапускает поды через checksum), переменные — `env:`, секреты — `secretEnv:` или `envFromSecrets:`.
 
+## Статические фронтенды (nginx)
+
+Чарт подходит и для сервиса без собственного бинарника: в `.helm/values.yaml` ставится `command: []` (запускается ENTRYPOINT образа), обе пробы указывают на `/healthz` nginx, ресурсы уменьшаются. Образ — `nginxinc/nginx-unprivileged`, слушает `8080`; файловая система остаётся только для чтения, запись идёт в `/tmp`. Пример — `frontend/documentation/.helm`.
+
 ## Проверка
 
 ```powershell
