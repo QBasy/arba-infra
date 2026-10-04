@@ -10,6 +10,7 @@
 | [ci.md](ci.md) | пайплайн, стадии, что блокирует merge, токены |
 | [registry.md](registry.md) | имена образов и чартов, теги, digest, хранение, доступ |
 | [versions.md](versions.md) | как хранится «что и какой версии где выкачено», релизы, откат |
+| [releasing-libs.md](releasing-libs.md) | выпуск тегов kit и contracts, обновление версий в сервисах |
 | [helm.md](helm.md) | правило `.helm` в каждом репозитории, значения, публикация чарта |
 | [k8s.md](k8s.md) | namespace `dev`, метки, ресурсы, пробы, безопасность, сеть, БД |
 | [ingress.md](ingress.md) | как публиковать сервис наружу, имена хостов, TLS, Envoy / Gateway API |
