@@ -20,6 +20,24 @@ go env -w GOINSECURE='*.arba.kz' GOPRIVATE='*.arba.kz'
 
 Зависимости на другие движки запрещены (проверяет `go-arch-lint`). Разрешены `gitlab.arba.kz/arba/contracts` и `gitlab.arba.kz/arba/kit`, версии — только тегами SemVer, не `main`.
 
+## Структура internal/
+
+Одинакова во всех движках, зависимости проверяет `go-arch-lint` (`.go-arch-lint.yml`). Подробная таблица — в «Arba — подготовка к разработке», раздел «Структура репозиториев и движка».
+
+```text
+cmd/{server,worker,migrate}   только вызов bootstrap
+internal/
+  domain/<модуль>/            сущности и правила; stdlib, kit/money, apd
+  usecase/                    use cases и порты (интерфейсы объявляет потребитель)
+  delivery/httpapi/           хендлеры, ошибки → Problem Details, маппинг DTO
+  infrastructure/             postgres, memory, system, клиенты других движков
+  bootstrap/                  сборка зависимостей (composition root)
+  platform/                   config, buildinfo, testutil
+migrations/                   goose, встроены в бинарник
+```
+
+Правила: `domain` ни от чего не зависит; `usecase` знает только `domain`; `delivery` и `infrastructure` знают `usecase` и `domain`, но не друг друга; собирает всё `bootstrap`. Общий код между движками живёт в `kit`, а не в `pkg/` движка; `pkg/` заводится только для кода, который осознанно публикуется наружу. Старые имена `app`, `adapters`, `service` не используются.
+
 ## Бинарники и образ
 
 Один образ — все `cmd/*`:
