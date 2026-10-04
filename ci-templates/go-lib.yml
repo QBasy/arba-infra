@@ -67,7 +67,7 @@ gitleaks:
   stage: verify
   image: { name: $GITLEAKS_IMAGE, entrypoint: [""] }
   script:
-    - gitleaks detect --source . --no-banner --redact
+    - gitleaks detect --no-git --source . --no-banner --redact
 
 generated-code:
   stage: verify
