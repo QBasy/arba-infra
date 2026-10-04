@@ -55,6 +55,32 @@ securityContext:
   valueFrom: { fieldRef: { fieldPath: metadata.name } }
 - name: GOMEMLIMIT
   valueFrom: { resourceFieldRef: { resource: limits.memory, divisor: "1" } }
+{{- $p := .Release.Name | upper | replace "-" "_" }}
+{{- with .Values.platform }}
+{{- if .natsUrl }}
+- name: {{ $p }}_NATS_URL
+  value: {{ .natsUrl | quote }}
+{{- end }}
+{{- if .otelEndpoint }}
+- name: {{ $p }}_OTEL_ENDPOINT
+  value: {{ .otelEndpoint | quote }}
+{{- end }}
+{{- with .jwt }}
+{{- if .jwksUrl }}
+- name: {{ $p }}_JWT_JWKS_URL
+  value: {{ .jwksUrl | quote }}
+- name: {{ $p }}_JWT_ISSUER
+  value: {{ .issuer | quote }}
+- name: {{ $p }}_JWT_AUDIENCE
+  value: {{ .audience | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.database .Values.database.enabled }}
+- name: {{ $p }}_DATABASE_DSN
+  valueFrom:
+    secretKeyRef: { name: {{ default (printf "%s-db" .Release.Name) .Values.database.secret }}, key: {{ default "dsn" .Values.database.key }} }
+{{- end }}
 {{- range $k, $v := .Values.env }}
 - name: {{ $k }}
   value: {{ $v | quote }}

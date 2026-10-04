@@ -81,3 +81,17 @@ podAnnotations: {}
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+# Общие настройки окружения (NATS, JWT, OTel). Заполняются централизованно из argocd-dev/values/<env>-common.yaml.
+# Чарт сам превращает их в переменные <ИМЯ_РЕЛИЗА>_NATS_URL, <ИМЯ_РЕЛИЗА>_JWT_* и т.д. (префикс = имя сервиса).
+platform: {}
+#  natsUrl: nats://nats.broker.svc.cluster.local:4222
+#  otelEndpoint: ""
+#  jwt: { jwksUrl: "", issuer: "", audience: "" }
+
+# База данных сервиса: включить, когда сервису нужен PostgreSQL. DSN берётся из Secret <имя-релиза>-db, ключ dsn
+# (Secret создаёт External Secrets из Vault, см. argocd-dev/scripts/new-database.sh).
+database:
+  enabled: false
+  secret: ""      # по умолчанию <имя-релиза>-db
+  key: dsn

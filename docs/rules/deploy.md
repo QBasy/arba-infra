@@ -29,9 +29,12 @@ infra/
 
 ## Как добавить новый сервис в `dev`
 
-1. В репозитории сервиса есть `.helm/`, `Dockerfile`, `.gitlab-ci.yml` (см. [helm.md](helm.md), [ci.md](ci.md)). После merge в `main` образ собран.
-2. В `arba/infra` создайте `envs/dev/<сервис>/app.yaml` (образец — `examples/envs/dev/origination/`; поменяйте `name` и `repoURL`) и пустой `values.yaml`.
-3. Merge MR. ApplicationSet создаст Application, Argo CD выкатит сервис; дальше обновлять `app.yaml` будет бот.
+Руками в `argocd-dev` ничего создавать не нужно.
+
+1. В репозитории сервиса есть `.helm/`, `Dockerfile`, `.gitlab-ci.yml` с `SERVICE: <имя>` (см. [helm.md](helm.md), [ci.md](ci.md)).
+2. Поставьте git-тег (`0.1.0`, `v0.1.0`). Job `deploy-dev` сам создаст `dev/<имя>.yml` в `argocd/argocd-dev` из шаблона `templates/service.yml.tpl` и пропишет ревизию, тег и digest.
+3. Настройки сервиса под dev лежат в **его же репозитории**: необязательный файл `.helm/values-dev.yaml` (переменные, ingress, ресурсы). Общие значения окружения (NATS, JWT) подставляются из `argocd-dev/values/dev-common.yaml`: чарт сам превращает их в `<ИМЯ_СЕРВИСА>_NATS_URL`, `<ИМЯ_СЕРВИСА>_JWT_*`.
+4. Нужен PostgreSQL: в `argocd-dev` выполнить `sh scripts/new-database.sh <имя>` (создаёт кластер CloudNativePG и ExternalSecret'ы), запушить, затем `.\19-vault.ps1 -Db <имя>` (пароль в Vault), а в `.helm/values-dev.yaml` сервиса указать `database: { enabled: true }`. DSN попадёт в `<ИМЯ>_DATABASE_DSN` из Secret `<имя>-db`.
 
 ## Параметры синхронизации
 

@@ -202,10 +202,15 @@ deploy-dev:
     - |
       if [ -z "$GITOPS_PUSH_TOKEN" ]; then echo "нет переменной GITOPS_PUSH_TOKEN (группа arba)"; exit 1; fi
       git clone --depth 1 "http://gitops-bot:${GITOPS_PUSH_TOKEN}@${GITLAB_HOST}/${GITOPS_REPO}.git" /tmp/gitops
-      if [ ! -f "/tmp/gitops/dev/${SERVICE}.yml" ]; then echo "нет dev/${SERVICE}.yml в ${GITOPS_REPO}, создайте манифест сервиса"; exit 1; fi
+      if [ ! -f "/tmp/gitops/dev/${SERVICE}.yml" ]; then
+        TIER=platform
+        case "$CI_PROJECT_PATH" in */engines/*) TIER=engine ;; esac
+        sh /tmp/gitops/scripts/new-service.sh "$SERVICE" "http://${GITLAB_HOST}/${CI_PROJECT_PATH}.git" "${REGISTRY}/${CI_PROJECT_PATH}" "$TIER" /tmp/gitops
+      fi
       sh /tmp/gitops/scripts/bump.sh "/tmp/gitops/dev/${SERVICE}.yml" "$CI_COMMIT_SHA" "$IMAGE_TAG" "$IMAGE_DIGEST"
       cd /tmp/gitops
-      git -c user.name=gitops-bot -c user.email=gitops-bot@arba.kz commit -am "deploy(dev): ${SERVICE} ${IMAGE_TAG}"
+      git add -A
+      git -c user.name=gitops-bot -c user.email=gitops-bot@arba.kz commit -m "deploy(dev): ${SERVICE} ${IMAGE_TAG}"
       git push origin HEAD:main
 
 # ───────────── release (helm-чарт; только для семантических тегов 1.2.3 / v1.2.3) ─────────────
