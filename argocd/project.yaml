@@ -6,7 +6,7 @@ metadata:
 spec:
   description: Сервисы Arba
   sourceRepos:
-    - http://gitlab.arba.kz/arba/*
+    - http://gitlab.arba.kz/arba/**   # ** — чтобы подходили вложенные группы (arba/engines/...)
   destinations:
     - namespace: dev
       server: https://kubernetes.default.svc
