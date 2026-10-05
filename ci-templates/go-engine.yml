@@ -205,7 +205,7 @@ deploy-dev:
       if [ ! -f "/tmp/gitops/dev/${SERVICE}.yml" ]; then
         TIER=platform
         case "$CI_PROJECT_PATH" in */engines/*) TIER=engine ;; esac
-        sh /tmp/gitops/scripts/new-service.sh "$SERVICE" "http://${GITLAB_HOST}/${CI_PROJECT_PATH}.git" "${REGISTRY}/${CI_PROJECT_PATH}" "$TIER" /tmp/gitops
+        SERVICE_KIND=go sh /tmp/gitops/scripts/new-service.sh "$SERVICE" "http://${GITLAB_HOST}/${CI_PROJECT_PATH}.git" "${REGISTRY}/${CI_PROJECT_PATH}" "$TIER" /tmp/gitops
       fi
       sh /tmp/gitops/scripts/bump.sh "/tmp/gitops/dev/${SERVICE}.yml" "$CI_COMMIT_SHA" "$IMAGE_TAG" "$IMAGE_DIGEST"
       cd /tmp/gitops
