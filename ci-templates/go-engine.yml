@@ -59,7 +59,6 @@ workflow:
       when: never
     - when: on_success
 
-# ───────────── verify ─────────────
 go-versions:
   stage: verify
   extends: [.go, .not-tag]
@@ -106,7 +105,6 @@ gitleaks:
   script:
     - gitleaks detect --source . --no-banner --redact
 
-# ───────────── test ─────────────
 unit:
   stage: test
   extends: [.go, .not-tag]
@@ -138,7 +136,6 @@ integration:
   script:
     - make test-integration
 
-# ───────────── build (только по тегу; тег = версия образа) ─────────────
 build-image:
   stage: build
   image: { name: $KANIKO_IMAGE, entrypoint: [""] }
@@ -165,7 +162,6 @@ build-image:
   artifacts:
     reports: { dotenv: build.env }
 
-# ───────────── scan ─────────────
 govulncheck:
   stage: scan
   extends: [.go]
@@ -189,7 +185,6 @@ trivy-image:
     - trivy image --severity HIGH,CRITICAL --exit-code 1 --format table "$IMAGE@$IMAGE_DIGEST"
   allow_failure: true       # то же: база уязвимостей скачивается из интернета
 
-# ───────────── deploy в dev (тег -> коммит в argocd/argocd-dev, дальше Argo CD) ─────────────
 deploy-dev:
   stage: deploy
   image: alpine:3.21
@@ -213,7 +208,6 @@ deploy-dev:
       git -c user.name=gitops-bot -c user.email=gitops-bot@arba.kz commit -m "deploy(dev): ${SERVICE} ${IMAGE_TAG}"
       git push origin HEAD:main
 
-# ───────────── release (helm-чарт; только для семантических тегов 1.2.3 / v1.2.3) ─────────────
 release-chart:
   stage: release
   image: { name: $HELM_IMAGE, entrypoint: [""] }
