@@ -46,7 +46,6 @@ workflow:
       when: never
     - when: on_success
 
-# ───────────── verify ─────────────
 lint:
   stage: verify
   extends: [.bun, .not-tag]
@@ -74,7 +73,6 @@ gitleaks:
   script:
     - gitleaks detect --source . --no-banner --redact
 
-# ───────────── build ─────────────
 build-site:
   stage: build
   extends: [.bun]       # и по тегу: сайт собирается заново на каждый релиз (тянет свежие доки)
@@ -85,7 +83,6 @@ build-site:
     paths: [build/]
     expire_in: 1 day
 
-# ───────────── image (только по тегу; тег = версия образа) ─────────────
 build-image:
   stage: image
   image: { name: $KANIKO_IMAGE, entrypoint: [""] }
@@ -109,7 +106,6 @@ build-image:
   artifacts:
     reports: { dotenv: build.env }
 
-# ───────────── deploy в dev (тег -> коммит в argocd/argocd-dev, дальше Argo CD) ─────────────
 deploy-dev:
   stage: deploy
   image: alpine:3.21
@@ -133,7 +129,6 @@ deploy-dev:
       git -c user.name=gitops-bot -c user.email=gitops-bot@arba.kz commit -m "deploy(dev): ${SERVICE} ${IMAGE_TAG}"
       git push origin HEAD:main
 
-# ───────────── release (helm-чарт; только для семантических тегов 1.2.3 / v1.2.3) ─────────────
 release-chart:
   stage: release
   image: { name: $HELM_IMAGE, entrypoint: [""] }
