@@ -41,7 +41,6 @@ workflow:
     key: go-$CI_PROJECT_NAME
     paths: [.cache/]
 
-# ───────────── verify ─────────────
 go-versions:
   stage: verify
   extends: [.go]
@@ -78,7 +77,6 @@ generated-code:
     - sh -c "$GEN_CMD"
     - git diff --exit-code
 
-# ───────────── test ─────────────
 unit:
   stage: test
   extends: [.go]
@@ -87,7 +85,6 @@ unit:
     - go tool cover -func=cover.out | tail -n 1
   coverage: '/total:\s+\(statements\)\s+(\d+\.\d+)%/'
 
-# ───────────── release ─────────────
 # Версия библиотеки = git-тег. Go требует префикс v и семантическую версию: v0.2.0, v1.4.2.
 release-tag:
   stage: release
